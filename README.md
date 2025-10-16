@@ -1,5 +1,5 @@
 
-# Sistema de IA para Detección Temprana de Cáncer de Tiroides mediante Ecografía
+# Sistema de apoyo al diagnóstico basado en inteligencia artificial para la detección temprana de cáncer de tiroides mediante ecografía
 
 ## Descripción General
 Este proyecto implementa un **sistema de apoyo al diagnóstico médico** basado en **inteligencia artificial**, diseñado para **detectar de forma temprana el cáncer de tiroides** mediante imágenes ecográficas.  
