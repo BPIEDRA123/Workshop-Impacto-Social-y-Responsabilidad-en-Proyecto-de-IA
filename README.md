@@ -136,18 +136,27 @@ Recomendación: Correlacionar con estudio citológico y control clínico.
 
 ## 9.Arquitectura General del Sistema
 Diagrama lógico resumido:
-┌─────────────────────────────────────────────────────────┐
 │       SISTEMA DE DIAGNÓSTICO AUTOMATIZADO DE TIROIDES   │
-├─────────────────────────────────────────────────────────
-│ 1️⃣ Carga Dataset (Imágenes)                           	│
-│ 2️⃣ Limpieza y Etiquetado Automático               		│
-│ 3️⃣ Detección de Anomalías (Isolation Forest)         	│
-│ 4️⃣ Análisis EDA y Balanceo de Clases                  	│
-│ 5     Data Augmentation (TF Layers)                   	│
-│ 6     Entrenamiento EfficientNetB0 (Fine-Tuning)      	│
-│ 7️⃣ Evaluación Métricas y Persistencia .keras          	│
-│ 8️⃣ Interfaz Predictiva: Imagen → Diagnóstico Médico    │
-└─────────────────────────────────────────────-----------┘
+├─────────────────────────────────────────────────────────│
+
+1️⃣ Carga Dataset (Imágenes) 
+
+2️⃣ Limpieza y Etiquetado Automático
+
+3️⃣ Detección de Anomalías (Isolation Forest) 
+
+4️⃣ Análisis EDA y Balanceo de Clases 
+
+5  Data Augmentation (TF Layers) 
+
+6  Entrenamiento EfficientNetB0 (Fine-Tuning) 
+
+7️⃣ Evaluación Métricas y Persistencia .keras
+
+8️⃣ Interfaz Predictiva: Imagen → Diagnóstico Médico 
+
+
+
 
 ## 10. Resumen Técnico
 El sistema implementado en Integrador30.ipynb presenta una arquitectura modular, robusta y escalable para diagnóstico asistido por IA en imágenes tiroideas.
