@@ -56,87 +56,149 @@ El flujo general se compone de los siguientes módulos:
 ## 2. Arquitectura de Procesamiento y Estructura de Datos
 2.1. Carga y Exploración Inicial
 El sistema inicia con la lectura de imágenes desde el repositorio:
+
 /content/drive/MyDrive/p_1_image
+
 Mediante os.walk() se estructura un DataFrame que almacena los metadatos de cada archivo: ruta, nombre, longitud y etiqueta inferida desde el directorio padre (benign o malignant).
 Se incluyen controles de integridad:
+
 •	Eliminación de registros vacíos o inconsistentes.
+
 •	Verificación del número de archivos por clase.
+
 •	Cálculo de la longitud del archivo (file_len) como variable auxiliar para detectar anomalías.
+
 ## 3. Módulo de Detección de Anomalías
 Se aplica Isolation Forest (sklearn.ensemble.IsolationForest) sobre la columna file_len con una contaminación del 5%.
 El objetivo es detectar posibles corrupciones o inconsistencias en las imágenes cargadas.
+
 iso = IsolationForest(contamination=0.05)
+
 df["anomaly"] = iso.fit_predict(df[["file_len"]])
+
 Para evitar errores de ejecución con datasets vacíos, se incluye la validación:
+
 if len(df[["file_len"]]) > 0:
+
     df["anomaly"] = iso.fit_predict(df[["file_len"]])
+    
 else:
+
     df["anomaly"] = []
+    
 
 ## 4. Análisis Exploratorio de Datos (EDA)
 Incluye:
+
 •	Distribución de clases (benigno vs maligno).
+
 •	Histogramas de longitudes de archivos y resolución de imágenes.
+
 •	Conteo de muestras eliminadas como anomalías.
+
 •	Curva de correlación entre tamaño de archivo y clase.
+
 Este bloque permite evaluar el balance de clases y la calidad del dataset antes del entrenamiento.
+
 
 ## 5. Módulo de Preprocesamiento y Data Augmentation
 Se implementa un pipeline de transformación usando tf.keras.Sequential, aplicado directamente dentro del modelo para mantener la coherencia entre entrenamiento y predicción:
+
 data_augmentation = tf.keras.Sequential([
+
     layers.RandomFlip("horizontal"),
+    
     layers.RandomRotation(0.08),
+    
     layers.RandomZoom(0.08),
+    
 ])
+
 El preprocesamiento incluye:
+
 •	Redimensionamiento: imágenes a 224x224.
+
 •	Normalización: reescalado de píxeles a rango [0,1].
+
 •	Batching: división de datos en lotes (batch size configurable).
+
 
 ## 6. Arquitectura del Modelo — EfficientNetB0
 El modelo base proviene de tf.keras.applications.EfficientNetB0, preentrenado en ImageNet, con pesos ajustados mediante transfer learning.
 Estructura:
+
 •	Input Layer: imágenes RGB de 224x224x3.
+
 •	Bloques convolucionales profundos de EfficientNet con técnicas de depthwise separable convolutions.
+
 •	Global Average Pooling Layer: reduce la dimensionalidad manteniendo la información semántica global.
+
 •	Dropout (0.3): regularización para evitar sobreajuste.
+
 •	Dense Layer (1, sigmoid): salida binaria (benigno/maligno).
+
 Configuración de entrenamiento:
+
 final_model.compile(
+
     optimizer=tf.keras.optimizers.Adam(learning_rate=1e-5),
+    
     loss='binary_crossentropy',
+    
     metrics=['accuracy']
+    
 )
+
 El entrenamiento se realiza durante 6 épocas (ajustadas para eficiencia en Colab) con validación cruzada sobre un conjunto de testeo del 20%.
 
 
 ## 7. Evaluación y Persistencia del Modelo
 Tras el entrenamiento, se registran:
+
 •	Accuracy y loss de entrenamiento y validación.
+
 •	Curvas de aprendizaje.
+
 •	Matriz de confusión y reportes de clasificación (precision, recall, F1-score).
+
 El modelo se almacena en formato moderno .keras:
+
 final_model.save("/content/thyroid_effnet_prod.keras")
+
 
 ## 8. Predicción Interactiva del Médico (Diagnóstico Asistido)
 El módulo final solicita al doctor especialista cargar una imagen ecográfica mediante un cuadro de diálogo interactivo:
+
 predict_uploaded_image(final_model)
+
 Esta función realiza:
+
 1.	Carga y preprocesamiento automático de la imagen subida.
+
 2.	Ejecución del modelo final_model para predicción.
+
 3.	Obtención del score de probabilidad.
+
 4.	Interpretación médica automatizada:
+
 o	p < 0.5 → diagnóstico probable: nódulo benigno.
+
 o	p ≥ 0.5 → diagnóstico probable: nódulo maligno (sujeto a confirmación médica).
+
 Salida textual ejemplo:
+
 Probabilidad de malignidad: 0.83
+
 Diagnóstico asistido: Lesión sospechosa (Maligna probable)
+
 Recomendación: Correlacionar con estudio citológico y control clínico.
 
 
 ## 9.Arquitectura General del Sistema
 Diagrama lógico resumido:
+
 │       SISTEMA DE DIAGNÓSTICO AUTOMATIZADO DE TIROIDES   │
+
 ├─────────────────────────────────────────────────────────│
 
 1️⃣ Carga Dataset (Imágenes) 
@@ -161,14 +223,25 @@ Diagrama lógico resumido:
 ## 10. Resumen Técnico
 El sistema implementado en Integrador30.ipynb presenta una arquitectura modular, robusta y escalable para diagnóstico asistido por IA en imágenes tiroideas.
 La combinación de preentrenamiento EfficientNet, detección de anomalías y pipeline automático de predicción permite obtener resultados clínicamente interpretables y reproducibles en un entorno de investigación médica.
+
 •	Framework principal: TensorFlow 2.x / Keras 3
+
 •	Backend: Google Colab (GPU)
+
 •	Entrada: Imágenes ecográficas .jpg / .png
+
 •	Salida: Probabilidad de malignidad + recomendación diagnóstica
+
+<img width="1024" height="1536" alt="image" src="https://github.com/user-attachments/assets/6945b52d-eed8-4157-8d98-4b9298eb5a59" />
+
+
+
+
+
+
 
 
 ---
-
 ## Stakeholders y Grupos Impactados
 | Stakeholder | Beneficios | Riesgos | Nivel de Influencia |
 |--------------|-------------|----------|---------------------|
@@ -180,27 +253,217 @@ La combinación de preentrenamiento EfficientNet, detección de anomalías y pip
 > **Grupos vulnerables:** Pacientes de zonas rurales con limitado acceso a servicios médicos.
 
 ---
+## 3. Evaluación de Impacto Social
 
-## Impacto Social y Ético
+3.1 Impactos Positivos
+1. Mejora en la precisión diagnóstica
+•	Descripción: El uso de modelos de aprendizaje profundo permite detectar patrones en ecografías de tiroides con un nivel de detalle que puede superar la percepción humana, reduciendo los falsos negativos en diagnósticos tempranos de cáncer.
+•	Grupos beneficiados: Pacientes con sospecha de patologías tiroideas, radiólogos, endocrinólogos y hospitales públicos con recursos limitados.
+•	Evidencia o justificación: Estudios recientes muestran que los sistemas basados en CNN alcanzan precisiones superiores al 90% en la clasificación de nódulos tiroideos (referencia: IEEE Transactions on Medical Imaging, 2023), mejorando la detección temprana y las tasas de supervivencia.
+2. Democratización del acceso a diagnósticos especializados
+•	Descripción: La integración del sistema en plataformas médicas digitales facilita que centros rurales o con baja disponibilidad de especialistas puedan acceder a un diagnóstico asistido por IA.
+•	Grupos beneficiados: Comunidades rurales, hospitales públicos y clínicas de bajo presupuesto.
+•	Evidencia o justificación: La implementación de herramientas IA en entornos con escasez de recursos ha demostrado reducir los tiempos de diagnóstico hasta en un 60%, aumentando la eficiencia del sistema de salud.
+3. Optimización de recursos médicos y reducción de carga laboral
+•	Descripción: El sistema puede preclasificar imágenes médicas, permitiendo que los radiólogos enfoquen su atención en casos complejos.
+•	Grupos beneficiados: Profesionales de la salud, instituciones hospitalarias y sistemas de salud pública.
+•	Evidencia o justificación: La automatización parcial de la lectura de imágenes permite procesar hasta diez veces más estudios en el mismo periodo, según métricas internas de proyectos piloto similares (OMS, 2022).
 
-### Impactos Positivos
-- **Mejora del diagnóstico temprano** → mayor tasa de supervivencia.
-- **Acceso equitativo** a diagnósticos especializados mediante telemedicina.
-- **Optimización de recursos hospitalarios** gracias a la automatización.
 
-### Riesgos Éticos
-1. **Sesgo algorítmico:** Pérdida de precisión en grupos subrepresentados.  
-2. **Privacidad de datos médicos:** Exposición de información sensible.  
-3. **Falta de explicabilidad:** Dificultad para interpretar decisiones del modelo.  
-4. **Responsabilidad clínica:** Dilema sobre quién responde ante un error diagnóstico.
+3.2 Impactos Negativos y Riesgos
+1. Riesgo de sesgo algorítmico
+•	Descripción del riesgo: Si el modelo fue entrenado con datos no representativos (por ejemplo, mayor proporción de un grupo étnico o rango etario), puede generar errores sistemáticos en diagnósticos fuera de ese rango.
+•	Grupos vulnerables: Pacientes con características no representadas en el dataset.
+•	Severidad: Alta
+•	Probabilidad: Media
+2. Dependencia excesiva de la tecnología
+•	Descripción del riesgo: Médicos o instituciones pueden confiar ciegamente en los resultados de la IA sin una revisión clínica adecuada.
+•	Grupos vulnerables: Pacientes en zonas donde el recurso humano especializado es limitado.
+•	Severidad: Alta
+•	Probabilidad: Media
+3. Riesgos de privacidad y manejo de datos médicos
+•	Descripción del riesgo: El almacenamiento y procesamiento de imágenes médicas podrían exponer datos sensibles si no se aplican protocolos de seguridad y anonimización adecuados.
+•	Grupos vulnerables: Pacientes, instituciones médicas y sistemas de salud pública.
+•	Severidad: Alta
+•	Probabilidad: Media
+
+3.3 Análisis de Equidad
+Pregunta crítica: ¿El sistema reduce o aumenta desigualdades existentes?
+•	Distribución de beneficios: Los mayores beneficios recaen en centros médicos con infraestructura tecnológica para implementar el modelo, aunque la intención es extenderlo a zonas con recursos limitados.
+•	Distribución de riesgos: Los riesgos se concentran en poblaciones donde la IA opera con escasa supervisión médica o con datos insuficientes.
+•	Acceso: Aún no todos los hospitales públicos cuentan con capacidad de cómputo ni conexión segura a la nube para ejecutar modelos de IA en tiempo real.
+•	Barreras: Limitaciones tecnológicas, falta de capacitación en el personal médico, y resistencia a la adopción tecnológica en entornos tradicionales.
 
 ---
+## Riesgos Éticos Específicos
+## *Riesgo 1:* Sesgo en el Modelo por Datos Desbalanceados
+
+•	Descripción:
+
+El dataset está desbalanceado, con 377 imágenes "malignant" y 260 "benign", y no se encontró la carpeta "normal". Esto podría generar un modelo sesgado hacia la clase mayoritaria ("malignant"), afectando la precisión diagnóstica para casos benignos o normales.
+
+•	Evidencia:
+
+o	En la carga de datos, se reporta: malignant: 377 imágenes, benign: 260 imágenes, y  Carpeta no encontrada: /content/drive/MyDrive/p_1_image/normal.
+
+o	El código incluye un balanceador avanzado (AdvancedBalancer), que trata de generar  efectividad.
+
+•	Severidad: Alta
+
+•	Grupo afectado: Pacientes con condiciones benignas o normales, que podrían recibir diagnósticos incorrectos.
+
+
+## *Riesgo 2:* Privacidad de Datos Médicos Sensibles
+
+•	Descripción:
+
+El sistema procesa imágenes médicas de pacientes sin mencionar mecanismos de anonimización, consentimiento informado o protección contra re-identificación. Los datos se almacenan en Google Drive sin especificar medidas de seguridad avanzadas (ej.: cifrado).
+
+•	Evidencia:
+
+o	Uso de Google Colab y drive.mount() para acceder a imágenes.
+
+o	Metadatos recopilados incluyen rutas de archivos y dimensiones originales, que podrían contener información identificable.
+
+•	Severidad: Alta
+
+•	Grupo afectado: Pacientes cuyas imágenes son utilizadas para entrenamiento o diagnóstico.
+
+## *Riesgo 3:* Falta de Transparencia y Explicabilidad
+
+•	Descripción:
+
+El modelo CNN funciona como una "caja negra", sin integrar herramientas de explicabilidad (ej.: SHAP, LIME) para justificar decisiones. Los usuarios (médicos) podrían no entender cómo se llega a un diagnóstico.
+
+•	Evidencia:
+
+o	El código se centra en métricas de precisión y curvas de aprendizaje, pero no incluye interpretabilidad de predicciones.
+
+o	La función generar_diagnostico_detallado() muestra probabilidades, pero no explica qué características de la imagen llevaron a la conclusión.
+
+•	Severidad: Media
+
+•	Grupo afectado: Médicos que usan el sistema para respaldar decisiones clínicas.
+
+## *Riesgo 4:* Accountability en Caso de Error
+
+•	Descripción:
+
+No se define un protocolo claro de responsabilidad si el modelo falla en el diagnóstico (ej.: falsos negativos en cáncer). Tampoco hay mención de auditorías externas o procesos de apelación para pacientes afectados.
+
+•	Evidencia:
+
+o	El sistema genera un "informe médico" pero advierte: "Este diagnóstico es asistido por IA y debe ser validado por médico especialista", trasladando la responsabilidad al usuario.
+
+o	No se documentan mecanismos para reportar errores o actualizar el modelo con retroalimentación.
+
+•	Severidad: Alta
+
+•	Grupo afectado: Pacientes sometidos a diagnósticos incorrectos y profesionales médicos que dependen del sistema.
 
 ## Estrategias de Mitigación
-- **Balanceo de datasets** y auditorías de fairness trimestrales.  
-- **Anonimización y cifrado** de todos los datos utilizados.  
-- **Implementación de Explainable AI (XAI)** para mejorar la confianza médica.  
-- **Revisión clínica obligatoria** antes de emitir diagnósticos finales.  
+## *Recomendaciones:*
+
+##*Riesgo 1:* Sesgo en el Modelo por Datos Desbalanceados
+
+Riesgo a mitigar: Sesgo en el Modelo por Datos Desbalanceados
+
+Estrategia propuesta: Balancear el dataset mediante técnicas de aumento de datos y muestreo, y evaluar métricas de fairness por clase.
+Tipo:
+
+•	✓ Técnica (cambios en modelo/datos)
+
+Implementación:
+
+1.	Recolectar imágenes de la clase faltante "normal" y aplicar técnicas de aumento de datos (e.g., rotaciones, GANs) para las clases minoritarias.
+
+2.	Implementar muestreo con SMOTE y ajustar class weights en el entrenamiento del modelo.
+
+3.	Evaluar métricas de fairness (ej.: igualdad de tasas de falsos positivos/negativos) usando Fairlearn o similares.
+
+Cuándo: Antes del entrenamiento inicial y en cada actualización del dataset.
+
+Responsable: Data scientist del equipo.
+
+Efectividad esperada: Alta
+
+
+##*Riesgo 2:* Privacidad de Datos Médicos Sensibles
+
+Riesgo a mitigar: Privacidad de Datos Médicos Sensibles
+
+Estrategia propuesta: Implementar un protocolo de anonimización y seguridad de datos con cifrado y consentimiento explícito.
+Tipo:
+
+•	✓ Técnica (cambios en modelo/datos)
+
+•	✓ Política (governance, procesos)
+
+Implementación:
+
+1.	Anonimizar metadatos (eliminar rutas, nombres) y aplicar técnicas de ofuscación a las imágenes.
+
+2.	Cifrar datos en reposo (Google Drive) y en tránsito (protocolos HTTPS).
+
+3.	Establecer políticas de consentimiento informado y acceso basado en roles.
+
+Cuándo: Antes de la recolección de datos y de forma continua.
+
+Responsable: Oficial de seguridad de datos (DPO) y equipo legal.
+
+Efectividad esperada: Alta
+
+##*Riesgo 3:* Falta de Transparencia y Explicabilidad
+
+Riesgo a mitigar: Falta de Transparencia y Explicabilidad
+
+Estrategia propuesta: Integrar herramientas de explicabilidad (ej.: grad-CAM) y documentación clara para médicos.
+Tipo:
+
+•	✓ Técnica (cambios en modelo/datos)
+
+•	✓ Diseño (arquitectura, UX)
+
+Implementación:
+
+1.	Incorporar librerías como SHAP o grad-CAM para generar mapas de calor que resalten regiones relevantes en las imágenes.
+
+2.	Diseñar informes de diagnóstico que incluyan visualizaciones y explicaciones de las predicciones.
+
+3.	Documentar limitaciones del modelo en guías accesibles para usuarios médicos.
+
+Cuándo: Durante el desarrollo y en cada iteración del modelo.
+
+Responsable: Data scientist y diseñador de UX.
+
+Efectividad esperada: Media-Alta
+
+##*Riesgo 4:* Accountability en Caso de Error
+
+Riesgo a mitigar: Accountability en Caso de Error
+
+Estrategia propuesta: Establecer protocolos de supervisión humana, auditoría y procesos de apelación.
+Tipo:
+
+•	✓ Política (governance, procesos)
+
+•	✓ Diseño (arquitectura, UX)
+
+Implementación:
+
+1.	Diseñar un flujo de trabajo donde el diagnóstico de la IA sea siempre validado por un médico antes de su uso clínico.
+
+2.	Crear un sistema de registro de errores y retroalimentación para actualizar el modelo.
+
+3.	Realizar auditorías trimestrales por terceros independientes para evaluar el rendimiento y impacto ético.
+
+Cuándo: Continuo durante la operación del sistema.
+
+Responsable: Equipo legal, médicos responsables y comité de ética.
+
+Efectividad esperada: Alta
+
+ 
 
 ---
 
