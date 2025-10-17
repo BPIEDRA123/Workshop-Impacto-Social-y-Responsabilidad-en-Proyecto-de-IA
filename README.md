@@ -364,7 +364,7 @@ o	No se documentan mecanismos para reportar errores o actualizar el modelo con r
 ## Estrategias de Mitigación
 ## *Recomendaciones:*
 
-##*Riesgo 1:* Sesgo en el Modelo por Datos Desbalanceados
+### *Riesgo 1:* Sesgo en el Modelo por Datos Desbalanceados
 
 Riesgo a mitigar: Sesgo en el Modelo por Datos Desbalanceados
 
@@ -388,7 +388,7 @@ Responsable: Data scientist del equipo.
 Efectividad esperada: Alta
 
 
-##*Riesgo 2:* Privacidad de Datos Médicos Sensibles
+### Riesgo 2:* Privacidad de Datos Médicos Sensibles
 
 Riesgo a mitigar: Privacidad de Datos Médicos Sensibles
 
@@ -413,7 +413,7 @@ Responsable: Oficial de seguridad de datos (DPO) y equipo legal.
 
 Efectividad esperada: Alta
 
-##*Riesgo 3:* Falta de Transparencia y Explicabilidad
+### *Riesgo 3:* Falta de Transparencia y Explicabilidad
 
 Riesgo a mitigar: Falta de Transparencia y Explicabilidad
 
@@ -438,7 +438,7 @@ Responsable: Data scientist y diseñador de UX.
 
 Efectividad esperada: Media-Alta
 
-##*Riesgo 4:* Accountability en Caso de Error
+### *Riesgo 4:* Accountability en Caso de Error
 
 Riesgo a mitigar: Accountability en Caso de Error
 
@@ -467,15 +467,102 @@ Efectividad esperada: Alta
 
 ---
 
-## Framework de Responsabilidad
-- **Desarrolladores:** Garantizar precisión y control de versiones.  
-- **Data Scientists:** Asegurar calidad y equidad de datos.  
-- **Líder del Proyecto:** Supervisar cumplimiento ético.  
-- **Comité Ético:** Evaluar impactos clínicos y auditorías.  
+### Framework de Responsabilidad - Sistema de Análisis Tiroideo con IA
 
-Mecanismos de *accountability*: documentación, auditorías semestrales, y alertas automáticas de sesgo o *data drift*.
+## 6.1 Cadena de Responsabilidad
+
+Desarrolladores: Implementación técnica, seguridad del código
+
+Data Scientists: Calidad de datos, fairness del modelo
+
+Médicos Especialistas: Validación clínica, supervisión humana
+
+Product Owner: Decisiones de diseño, trade-offs éticos
+
+Oficial de Protección de Datos: Privacidad, consentimiento, seguridad
+
+Organización: Governance, responsabilidad final
+
+
+## 6.2 Mecanismos de Accountability
+
+Documentación: Model card, datasheet, ethics statement, guía clínica
+
+Supervisión: Revisión humana obligatoria, proceso de apelación, auditoría trimestral
+
+Monitoreo: Métricas de fairness semanales, alertas por drift, reportes de incidentes
+
+Transparencia: Consentimiento informado, explicaciones accesibles, documentación pública
+
+
+## 6.3 Plan de Respuesta a Incidentes
+
+Detección: Monitoreo automático, reportes de médicos, quejas de pacientes
+
+Respuesta Inmediata: Suspender diagnóstico automático, notificar médicos en 2 horas, activar revisión humana
+
+Investigación: Análisis root cause en 48 horas, auditoría completa en 7 días
+
+Corrección: Retraining del modelo, compensación si aplica, actualización de procedimientos
+
+Prevención: Incorporar lecciones aprendidas, actualizar protocolos, verificación antes de reimplementación
 
 ---
+## 7. CONSIDERACIONES DE COMPLIANCE
+### Regulaciones aplicables al proyecto de análisis de imágenes tiroideas con IA, considerando el contexto médico y los datos manejados.
+
+## HIPAA (Health Insurance Portability and Accountability Act):
+
+Requisitos: Protección de información de salud personal (PHI), incluyendo medidas administrativas, físicas y técnicas para garantizar la confidencialidad, integridad y disponibilidad de los datos. Notificación de violaciones de datos.
+
+Cumplimiento actual: El proyecto utiliza imágenes médicas almacenadas en Google Drive, lo que podría no cumplir con los requisitos de seguridad y almacenamiento de PHI. No se mencionan medidas específicas de cifrado o acuerdos de socios comerciales (BAAs) con Google.
+
+Cambios necesarios: Implementar medidas de seguridad acordes con HIPAA, como cifrado de datos en reposo y en tránsito, firmar un BAA con Google (si se usa Google Drive para PHI), y establecer políticas de acceso y auditoría.
+
+## GDPR (General Data Protection Regulation):
+
+Requisitos: Aplicable si se procesan datos de ciudadanos de la UE. Requiere consentimiento explícito, derecho al olvido, portabilidad de datos, y medidas de seguridad adecuadas.
+
+Cumplimiento actual: No se menciona el consentimiento informado ni los derechos de los sujetos de datos. El proyecto recopila metadatos que podrían identificar a pacientes.
+
+Cambios necesarios: Obtener consentimiento explícito para el uso de datos, implementar mecanismos para ejercer derechos de los sujetos, y asegurar que los datos se anonimizan adecuadamente.
+
+## AI Act de la EU:
+
+Requisitos: Clasificación del sistema de IA como de alto riesgo (ya que es un dispositivo médico). Requiere evaluación de conformidad, gestión de riesgos, datos de entrenamiento de alta calidad, documentación técnica y supervisión humana.
+
+Cumplimiento actual: El proyecto no parece tener una evaluación de conformidad ni documentación técnica detallada. No se menciona la supervisión humana obligatoria en el flujo de trabajo.
+
+Cambios necesarios: Realizar una evaluación de riesgo según el AI Act, documentar el sistema como dispositivo médico, implementar supervisión humana y garantizar la trazabilidad de las decisiones.
+
+## Leyes anti-discriminación (ej. Equality Act en UK o Civil Rights Act en USA):
+
+Requisitos: Evitar discriminación en base a características protegidas como raza, género, edad, etc.
+
+Cumplimiento actual: El modelo podría tener sesgos debido al desbalance de datos (faltan imágenes "normales"). No se evalúan métricas de fairness por grupos demográficos.
+
+Cambios necesarios: Recopilar datos balanceados por grupos demográficos, evaluar métricas de fairness, y mitigar sesgos mediante técnicas de preprocesamiento o postprocesamiento.
+
+## FDA (U.S. Food and Drug Administration) para dispositivos médicos:
+
+Requisitos: Si el sistema se usa para diagnóstico, podría requerir aprobación como dispositivo médico. Necesita validación clínica, documentación de rendimiento y gestión de riesgos.
+
+Cumplimiento actual: El proyecto parece ser un prototipo y no tiene aprobación de la FDA.
+
+Cambios necesarios: Realizar estudios clínicos para validar el rendimiento, documentar según los requisitos de la FDA y solicitar la aprobación correspondiente.
+
+### Cambios necesarios:
+
+Seguridad y privacidad: Implementar cifrado, acuerdos de socios comerciales para HIPAA, y políticas de acceso.
+
+Consentimiento y derechos: Diseñar procesos para obtener consentimiento informado y permitir a los pacientes ejercer sus derechos bajo GDPR.
+
+Evaluación de riesgos y documentación: Realizar una evaluación de conformidad según AI Act y FDA, documentar exhaustivamente el sistema.
+
+Fairness: Balancear datos y evaluar métricas de fairness para evitar discriminación.
+
+Estas consideraciones son críticas para desplegar el sistema en un entorno clínico real.
+
 
 ## Estructura del Repositorio
 ```
@@ -486,19 +573,17 @@ Mecanismos de *accountability*: documentación, auditorías semestrales, y alert
 └── README.md
 ```
 
----
-
 ## Reflexión Final
-> “El mayor reto no fue técnico, sino ético: equilibrar la precisión de la IA con la responsabilidad médica humana.”
+“El mayor reto no fue técnico, sino ético: equilibrar la precisión de la IA con la responsabilidad médica humana.”
 
 El proyecto demuestra cómo la inteligencia artificial puede **mejorar la equidad en salud**, siempre que se apliquen **principios de transparencia, justicia y responsabilidad compartida**.
 
 ---
 
 ## Autores
-- **Byron Piedra** 
-- **Christian García S.** 
+- **Ing. Byron Piedra** 
+- **Ing. Christian García S., MBA** 
 
-**Supervisora:** Ing. Gladys Villegas  
+**Profesor:** Ing. Gladys Villegas  
 **Institución:** Universidad de Especialidades Espíritu Santo (UEES)  
 **Fecha:** Octubre 2025
